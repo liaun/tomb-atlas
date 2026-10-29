@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>九州陵墓志 · 中国墓葬遗址地图</title>
+<meta name="description" content="一张可以探索的中国墓葬地图：收录帝王陵寝、王侯陵墓、将相名臣、文人名士、史前墓地、壁画墓、崖墓悬棺、边疆民族墓、传说陵墓与近现代陵园，标注位置、年代、发掘状态与考古故事。">
+<meta name="theme-color" content="#0d0c0a">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="app">
+  <header class="topbar">
+    <a class="brand" href="./index.html" aria-label="九州陵墓志首页">
+      <span class="seal" aria-hidden="true">墓</span>
+      <span class="brand-text">
+        <span class="brand-title">九州陵墓志</span>
+        <span class="brand-sub">中国墓葬遗址交互地图 · TOMB ATLAS OF CHINA</span>
+      </span>
+    </a>
+
+    <div class="topbar-actions">
+      <label class="searchbox" for="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l5 5"></path></svg>
+        <input id="search" type="search" placeholder="搜索陵墓、地名、朝代…" autocomplete="off" spellcheck="false" aria-label="搜索墓葬">
+        <kbd>/</kbd>
+      </label>
+      <button class="btn ghost random-btn" id="randomBtn" type="button" title="随机打开一处墓葬">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l10 10h3M4 17h3L17 7h3"></path><path d="M17 4l3 3-3 3M17 14l3 3-3 3"></path></svg>
+        <span>随机一墓</span>
+      </button>
+      <button class="btn ghost" id="aboutBtn" type="button">数据说明</button>
+    </div>
+  </header>
+
+  <section class="filterbar" aria-label="筛选与统计">
+    <div class="filter-row">
+      <span class="filter-label">时代</span>
+      <div class="chips era-chips" id="eraChips" role="group" aria-label="按时代筛选"></div>
+      <div class="filter-spacer"></div>
+      <div class="filter-selects">
+        <label class="select-wrap">
+          <span class="sr-only">按类别筛选</span>
+          <select id="catSelect" aria-label="按类别筛选"></select>
+        </label>
+        <label class="select-wrap">
+          <span class="sr-only">按省份筛选</span>
+          <select id="provSelect" aria-label="按省份筛选"></select>
+        </label>
+        <button class="btn tiny quiet" id="resetBtn" type="button">重置</button>
+      </div>
+    </div>
+    <div class="filter-row second">
+      <span class="filter-label">状态</span>
+      <div class="chips status-chips" id="statusChips" role="group" aria-label="按发掘状态筛选"></div>
+      <div class="filter-spacer"></div>
+      <div class="result-count" aria-live="polite">
+        <strong id="countNum">—</strong><span>处</span>
+        <span class="count-divider">/</span>
+        <span id="countHint">正在加载…</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="main">
+    <section class="map-panel" aria-label="墓葬分布地图">
+      <div class="map-wrap" id="mapWrap">
+        <svg id="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="application" aria-label="中国墓葬分布地图，可拖拽与缩放">
+          <defs>
+            <radialGradient id="mapGlow" cx="52%" cy="42%" r="72%">
+              <stop offset="0%" stop-color="#1d1914"></stop>
+              <stop offset="62%" stop-color="#12100d"></stop>
+              <stop offset="100%" stop-color="#0c0b09"></stop>
+            </radialGradient>
+            <pattern id="dotGrid" width="26" height="26" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="0.7" fill="#d8c3a5" opacity=".055"></circle>
+            </pattern>
+            <filter id="markerShadow" x="-80%" y="-80%" width="260%" height="260%">
+              <feDropShadow dx="0" dy="1.4" stdDeviation="1.6" flood-color="#000" flood-opacity=".55"></feDropShadow>
+            </filter>
+            <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="4" result="b"></feGaussianBlur>
+              <feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+            </filter>
+            <clipPath id="insetClip"><rect id="insetClipRect" x="0" y="0" width="0" height="0" rx="3"></rect></clipPath>
+          </defs>
+
+          <rect width="1000" height="720" fill="url(#mapGlow)"></rect>
+          <rect width="1000" height="720" fill="url(#dotGrid)"></rect>
+
+          <g id="mapLayer">
+            <g id="provinceLayer"></g>
+            <g id="riverLayer"></g>
+            <g id="labelLayer"></g>
+          </g>
+
+          <g id="markerLayer"></g>
+          <g id="insetLayer"></g>
+
+
+        </svg>
+
+        <div class="map-caption">
+          <span class="eyebrow">TOMB ATLAS · CHINA</span>
+          <strong id="mapCaption">中国墓葬分布</strong>
+          <span id="mapCaptionSub">181 处 · 32 个省级行政区</span>
+        </div>
+
+        <div class="map-controls" aria-label="地图缩放">
+          <button type="button" id="zoomIn" title="放大" aria-label="放大">+</button>
+          <button type="button" id="zoomOut" title="缩小" aria-label="缩小">−</button>
+          <button type="button" id="zoomReset" title="重置视图" aria-label="重置视图">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
+          </button>
+        </div>
+
+        <div class="legend" id="legend" aria-label="图例"></div>
+        <div class="map-hint" id="mapHint">滚轮缩放 · 拖拽平移 · 点击聚合点放大 · 点击标记看详情</div>
+        <div class="tooltip" id="tooltip" role="tooltip"></div>
+      </div>
+    </section>
+
+    <aside class="list-panel" aria-label="墓葬名录">
+      <div class="list-head">
+        <div class="list-title">
+          <h2>墓葬名录</h2>
+          <p id="listSub">按类别与时代排列</p>
+        </div>
+        <label class="select-wrap mini">
+          <span class="sr-only">排序方式</span>
+          <select id="sortSelect" aria-label="排序方式">
+            <option value="curated">推荐顺序</option>
+            <option value="era">按年代</option>
+            <option value="name">按名称</option>
+            <option value="province">按省份</option>
+          </select>
+        </label>
+      </div>
+      <div class="list" id="list"></div>
+      <div class="empty hidden" id="empty">
+        <span class="empty-mark">空</span>
+        <p>没有找到符合条件的墓葬</p>
+        <button class="btn tiny" type="button" id="emptyReset">清除筛选</button>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="page-foot">
+    <span>九州陵墓志 · 2026</span>
+    <span>数据为公开资料整理，坐标多为遗址中心近似值；传说陵墓不等于考古确认。</span>
+  </footer>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="墓葬详情">
+  <div class="drawer-inner" id="drawerInner"></div>
+</aside>
+
+<div class="modal-backdrop" id="aboutModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <button class="modal-close" id="aboutClose" type="button" aria-label="关闭">×</button>
+    <p class="eyebrow">ABOUT THIS ATLAS</p>
+    <h2 id="aboutTitle">关于这份地图</h2>
+    <p class="modal-lead">这不是一份“全部墓葬”的完整名录，而是一张可以不断生长的中国墓葬知识地图。</p>
+
+    <div class="about-stats" id="aboutStats"></div>
+
+    <div class="about-grid">
+      <section>
+        <h3>收录范围</h3>
+        <p>优先选取帝王陵寝、王侯贵族墓、重要考古墓地、壁画墓、崖墓悬棺、边疆民族墓、名人墓与传说陵墓。中国已知的古代墓葬以万计，本图目前收录 <strong id="aboutCount">181</strong> 处代表性遗存，覆盖 <strong id="aboutProv">32</strong> 个省级行政区，时间从旧石器时代晚期到近现代。</p>
+      </section>
+      <section>
+        <h3>状态怎么读</h3>
+        <ul class="status-legend" id="statusLegend"></ul>
+      </section>
+      <section>
+        <h3>坐标与位置</h3>
+        <p>坐标采用 WGS84，多为遗址或封土中心，精度从“精确”到“数公里范围”不等，详情页中的“位置说明”会标注。部分传说陵墓、衣冠冢只能标在纪念地或候选地，不能视作考古确认的墓位。</p>
+      </section>
+      <section>
+        <h3>资料与局限</h3>
+        <p>主要依据国家文物局全国重点文物保护单位名录、年度全国十大考古新发现、各省文物局与考古机构公开资料、UNESCO 世界遗产名录等整理。条目由 AI 辅助编纂，可能存在年代、墓主、保护级别或坐标误差；欢迎以正式考古报告与官方公告为准。</p>
+      </section>
+      <section>
+        <h3>如何扩充</h3>
+        <p>数据按类别存放在 <code>data/*.json</code>，修改后运行 <code>python3 tools/build_data.py</code> 重新校验并生成 <code>assets/tombs.js</code>。新增条目需要包含名称、类别、状态、年代、省份、经纬度、简介等字段。</p>
+      </section>
+      <section>
+        <h3>参观提醒</h3>
+        <p>请勿擅自进入未开放区域、攀爬封土或进行“探墓”直播。中国《文物保护法》禁止盗掘、破坏文物；许多陵墓位于农田、山林或保护区，访问前请确认开放信息并遵守现场规定。</p>
+      </section>
+    </div>
+
+    <div class="modal-foot">
+      <span>底图：DataV GeoAtlas · Albers 等积投影</span>
+      <span>版本 1.0 · 2026-10</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/china-map.js"></script>
+<script src="assets/tombs.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
