@@ -1001,6 +1001,23 @@ a { color: inherit; }
 .action:hover { border-color: rgba(201, 168, 106, 0.45); color: var(--gold-bright); background: rgba(201, 168, 106, 0.07); }
 .action svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
+.detail-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 28px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.018);
+}
+.detail-nav span {
+  font-size: 9.5px;
+  color: var(--faint);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.detail-nav .action { height: 28px; font-size: 10px; }
+
 .detail-section { padding: 21px 28px 0; }
 .detail-section:last-of-type { padding-bottom: 26px; }
 
@@ -1313,6 +1330,7 @@ a { color: inherit; }
   .meta-cell:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
   .meta-cell:last-child { border-bottom: 0; }
   .detail-actions { padding: 12px 20px; }
+  .detail-nav { padding: 8px 20px; }
   .detail-section { padding: 18px 20px 0; }
   .detail-note { margin: 0 20px 24px; }
 }

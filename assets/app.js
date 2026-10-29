@@ -907,6 +907,15 @@
       .map(function (o) { return o.t; });
   }
 
+  function goRelative(delta) {
+    if (!state.selected) return;
+    var arr = sortTombs(getFiltered());
+    var idx = arr.findIndex(function (x) { return x.id === state.selected; });
+    if (idx < 0 || arr.length < 2) return;
+    var next = arr[(idx + delta + arr.length) % arr.length];
+    selectTomb(next.id, { fly: true });
+  }
+
   function renderDrawer(t) {
     var color = STATUS_COLOR[t.status] || "#c9a86a";
     var tags = (t.tags || []).map(function (g) {
@@ -926,6 +935,17 @@
       related.map(function (r) {
         return '<button type="button" class="related-item" data-related="' + esc(r.id) + '"><span>' + esc(r.name) + "</span><small>" + esc(r.province) + " · " + esc(r.status) + "</small></button>";
       }).join("") + "</div></section>" : "";
+
+    var order = sortTombs(getFiltered());
+    var orderIndex = order.findIndex(function (x) { return x.id === t.id; });
+    var navHTML = "";
+    if (orderIndex >= 0 && order.length > 1) {
+      navHTML = '<div class="detail-nav">' +
+        '<button type="button" class="action" data-action="prev">← 上一处</button>' +
+        '<span>第 ' + (orderIndex + 1) + " / " + order.length + " 处</span>" +
+        '<button type="button" class="action" data-action="next">下一处 →</button>' +
+      "</div>";
+    }
 
     var searchQ = encodeURIComponent(t.name + " " + t.dynasty + " 考古");
     var osm = "https://www.openstreetmap.org/?mlat=" + t.lat + "&mlon=" + t.lng + "#map=15/" + t.lat + "/" + t.lng;
@@ -954,7 +974,7 @@
         '<button type="button" class="action" data-action="copy">复制坐标</button>' +
         '<a class="action" href="' + osm + '" target="_blank" rel="noopener">OpenStreetMap ↗</a>' +
         '<a class="action" href="' + amap + '" target="_blank" rel="noopener">高德地图 ↗</a>' +
-      "</div>" +
+      "</div>" + navHTML +
       '<section class="detail-section"><h3>概况</h3><p>' + esc(t.summary) + "</p><p>" + esc(t.detail) + "</p></section>" +
       (facts.length ? '<section class="detail-section"><h3>形制与考古</h3><ul class="fact-list">' + facts.join("") + "</ul></section>" : "") +
       '<section class="detail-section"><h3>出土与看点</h3><div class="finds">' + finds + "</div></section>" +
@@ -1158,6 +1178,8 @@
       if (!action) return;
       var act = action.getAttribute("data-action");
       if (act === "close") closeDrawer();
+      else if (act === "prev") goRelative(-1);
+      else if (act === "next") goRelative(1);
       else if (act === "center" && state.selected) {
         var t = byId.get(state.selected);
         if (t) focusTomb(t, Math.max(state.k, 4));
@@ -1189,6 +1211,12 @@
     document.addEventListener("keydown", function (e) {
       var tag = (document.activeElement && document.activeElement.tagName) || "";
       var typing = /^(INPUT|TEXTAREA|SELECT)$/.test(tag) || (document.activeElement && document.activeElement.isContentEditable);
+
+      if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && drawer.classList.contains("open") && aboutModal.hidden && !typing) {
+        e.preventDefault();
+        goRelative(e.key === "ArrowLeft" ? -1 : 1);
+        return;
+      }
 
       if (e.key === "/" && !typing) {
         e.preventDefault();
