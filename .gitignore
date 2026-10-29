@@ -2,3 +2,4 @@
 .github_token
 tools/shot.mjs
 tools/shoot.mjs
+tools/shot2.mjs
