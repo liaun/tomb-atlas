@@ -1467,3 +1467,21 @@ body {
 }
 .about-grid p { color: #b9ab98; }
 .grain { opacity: 0.032; }
+
+.card-quality {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 4px;
+  border: 1px solid rgba(143, 163, 176, 0.38);
+  border-radius: 3px;
+  color: #9fb2bf;
+  font-size: 8px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.source-note {
+  font-size: 11px !important;
+  color: #a9b6bf !important;
+  line-height: 1.8 !important;
+}

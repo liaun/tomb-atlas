@@ -14,15 +14,16 @@
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
   var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 
-  var CATS = ["帝王陵寝", "王侯陵墓", "将相名臣", "文人名士", "史前墓地", "壁画画像石墓", "崖墓悬棺", "边疆民族", "传说纪念", "近现代陵园"];
-  var ERAS = ["史前", "夏商周", "秦汉", "魏晋南北朝", "隋唐", "宋辽金西夏", "元明清", "近现代"];
-  var STATUS = ["已发掘", "部分发掘", "未发掘", "未证实", "已毁"];
+  var CATS = ["帝王陵寝", "王侯陵墓", "将相名臣", "文人名士", "史前墓地", "壁画画像石墓", "崖墓悬棺", "边疆民族", "传说纪念", "近现代陵园", "国保古墓葬"];
+  var ERAS = ["史前", "夏商周", "秦汉", "魏晋南北朝", "隋唐", "宋辽金西夏", "元明清", "近现代", "待考"];
+  var STATUS = ["已发掘", "部分发掘", "未发掘", "未证实", "未详", "已毁"];
 
   var STATUS_COLOR = {
     "已发掘": "#d0684a",
     "部分发掘": "#d5a54a",
     "未发掘": "#6f9c8b",
     "未证实": "#9a8ab5",
+    "未详": "#8fa3b0",
     "已毁": "#7f7870"
   };
 
@@ -31,6 +32,7 @@
     "部分发掘": "陵园、陪葬坑或部分墓室经过发掘，主墓室可能尚未开启。",
     "未发掘": "墓位基本明确，但主墓室尚未进行考古发掘。",
     "未证实": "墓主、墓位或性质存在争议，或属于传说陵墓、衣冠冢。",
+    "未详": "仅完成国保名录级入库；墓主、形制、发掘状况等待核实。",
     "已毁": "地面建筑或墓室已毁，仅存遗址、封土或石刻。"
   };
 
@@ -44,7 +46,8 @@
     "崖墓悬棺": "崖",
     "边疆民族": "边",
     "传说纪念": "传",
-    "近现代陵园": "近"
+    "近现代陵园": "近",
+    "国保古墓葬": "保"
   };
 
   var ERA_RANK = {}, CAT_RANK = {}, STATUS_RANK = {};
@@ -78,7 +81,7 @@
     t._search = [
       t.name, t.alias, t.dynasty, t.era, t.province, t.city,
       t.summary, t.detail, t.structure, t.excavation, t.level,
-      t.coordNote, t.dispute,
+      t.coordNote, t.dispute, t.source, t.quality, t.batch,
       (t.finds || []).join(" "), (t.tags || []).join(" ")
     ].join(" ").toLowerCase();
     byId.set(t.id, t);
@@ -402,6 +405,8 @@
         d: "M 0 -6.6 L 6.6 0 L 0 6.6 L -6.6 0 Z",
         fill: "#0d0c0a", stroke: color, "stroke-width": 1.7, "stroke-linejoin": "round"
       }));
+    } else if (t.status === "未详") {
+      shape.appendChild(svgEl("circle", { r: 4.2, fill: color, opacity: 0.82, stroke: "#0d0c0a", "stroke-width": 0.9 }));
     } else {
       shape.appendChild(svgEl("path", {
         d: "M -4 -4 L 4 4 M 4 -4 L -4 4",
@@ -769,7 +774,7 @@
       '<span class="card-mark">' + esc(CAT_MARK[t.cat] || "墓") + "</span>" +
       '<span class="card-body">' +
         '<span class="card-title">' + highlight(t.name, q) + alias + "</span>" +
-        '<span class="card-meta"><span>' + esc(t.dynasty) + '</span><span class="sep">·</span><span>' + esc(t.province) + " " + esc(t.city) + '</span><span class="sep">·</span><span class="card-status"><i></i>' + esc(t.status) + "</span></span>" +
+        '<span class="card-meta"><span>' + esc(t.dynasty) + '</span><span class="sep">·</span><span>' + esc(t.province) + " " + esc(t.city) + '</span><span class="sep">·</span><span class="card-status"><i></i>' + esc(t.status) + "</span>" + (t.quality === "名录" ? '<span class="card-quality">名录级</span>' : "") + "</span>" +
         '<span class="card-summary">' + esc(t.summary) + "</span>" +
       "</span>" +
       "</article>";
@@ -958,6 +963,7 @@
         '<div class="detail-badges">' +
           '<span class="badge cat">' + esc(t.cat) + "</span>" +
           '<span class="badge status" style="--sc:' + color + '"><i></i>' + esc(t.status) + "</span>" +
+          (t.quality === "名录" ? '<span class="badge">名录级 · 待补</span>' : "") +
         "</div>" +
         "<h2>" + esc(t.name) + "</h2>" +
         (t.alias ? '<p class="detail-alias">又名 · ' + esc(t.alias) + "</p>" : '<p class="detail-alias">' + esc(t.dynasty) + " · " + esc(t.era) + "</p>") +
@@ -979,6 +985,7 @@
       (facts.length ? '<section class="detail-section"><h3>形制与考古</h3><ul class="fact-list">' + facts.join("") + "</ul></section>" : "") +
       '<section class="detail-section"><h3>出土与看点</h3><div class="finds">' + finds + "</div></section>" +
       (t.dispute ? '<section class="detail-section"><h3>争议与未解</h3><div class="dispute"><p>' + esc(t.dispute) + "</p></div></section>" : "") +
+      (t.source ? '<section class="detail-section"><h3>条目来源</h3><p class="source-note">' + esc(t.source) + (t.batch ? "（" + esc(t.batch) + "）" : "") + "</p></section>" : "") +
       relatedHTML +
       '<section class="detail-section"><h3>延伸检索</h3><div class="source-links">' +
         '<a href="https://zh.wikipedia.org/w/index.php?search=' + searchQ + '" target="_blank" rel="noopener">维基百科</a>' +
@@ -998,12 +1005,12 @@
     var statusCounts = countBy(TOMBS, "status");
     var provCount = new Set(TOMBS.map(function (t) { return t.province; })).size;
     var excavated = statusCounts["已发掘"] || 0;
-    var pending = (statusCounts["未发掘"] || 0) + (statusCounts["未证实"] || 0);
+    var pending = (statusCounts["未发掘"] || 0) + (statusCounts["未证实"] || 0) + (statusCounts["未详"] || 0);
 
     var stats = [
       { n: total, label: "处墓葬与墓群" },
       { n: excavated, label: "处已发掘" },
-      { n: pending, label: "处未发掘 / 待确认" },
+      { n: pending, label: "处未发掘 / 待核实" },
       { n: provCount, label: "个省级行政区" }
     ];
     $("#aboutStats").innerHTML = stats.map(function (s) {
